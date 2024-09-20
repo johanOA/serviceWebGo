@@ -6,22 +6,32 @@ package main
 import (
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"strings"
+	"time"
 )
 
 func main() {
 
-	//Ruta de la carpeta a analizar
-	dir := "/Users/johanospina/Downloads"
+	//Ruta de la carpeta a analizar mac
+	//dir := "/Users/johanospina/Downloads"
+
+	//Para Windows
+	dir := "C:/Users/ospin/OneDrive/Imágenes"
+
+	//valor aleatorio
+	src := rand.NewSource(time.Now().UnixNano())
+	r := rand.New(src)
+	print(r)
 
 	//extension a filtrar
 	var extImg = []string{
 		// Formatos Rasterizados
 		".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".tif", ".webp", ".heif", ".heic", ".ppm", ".pgm", ".pbm",
 		// Formatos Vectoriales
-		".svg", ".eps", ".ai", ".pdf",
+		".svg", ".eps", ".ai",
 		// Otros Formatos de Imágenes
 		".ico", ".icns", ".psd", ".xcf", ".raw", ".cr2", ".nef", ".arw",
 		// Formatos 3D o Especializados
@@ -40,19 +50,29 @@ func main() {
 	//Itera sobre los archivos en la carpeta y guarda en el array
 	var i = 0
 	for _, file := range files {
-		if foundExt(extImg, file.Name(), 0) {
+		if foundExt2(extImg, file.Name()) {
 			fmt.Println(file.Name())
-			filterFiles[i] = file.Name()
+			filterFiles = append(filterFiles, file.Name())
 			i++
 		}
 	}
 
 	http.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
-		for _, file := range files {
-			fmt.Fprint(rw, file.Name()+"\n")
+		for _, file := range filterFiles {
+			fmt.Fprint(rw, file+"\n")
 		}
 	})
 	http.ListenAndServe("localhost:3000", nil)
+}
+
+func foundExt2(arr []string, name string) bool {
+	aux := strings.Split(name, ".")
+	for _, ind := range arr {
+		if "."+aux[len(aux)-1] == ind {
+			return true
+		}
+	}
+	return false
 }
 
 // Se hizo asi solo por practica pero se sabe que es mas eficiente un bucle
