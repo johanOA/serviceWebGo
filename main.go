@@ -16,11 +16,9 @@ import (
 
 func main() {
 
-	//Ruta de la carpeta a analizar mac
-	//dir := "/Users/johanospina/Downloads"
+	//Ruta  mac /Users/johanospina/Downloads
 
-	//Para Windows
-	//dir := "C:/Users/ospin/OneDrive/Imágenes"
+	//Para Windows C:/Users/ospin/OneDrive/Imágenes && C:/Users/ospin/Downloads
 
 	//Lista de los argumentos pasados incluyendo el archivo go
 	args := os.Args
@@ -93,8 +91,10 @@ func main() {
 		return
 	}
 
+	//Codificar a base 64
 	b64String := base64.StdEncoding.EncodeToString(imgBytes)
 
+	//Crea el archivo dado que si se imprime es demasiado largo
 	file, err := os.Create("imgBase64.txt")
 	if err != nil {
 		fmt.Println("Error al crear el archivo: ", err)
