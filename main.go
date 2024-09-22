@@ -4,6 +4,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"fmt"
 	"log"
 	"math/rand"
@@ -19,12 +20,24 @@ func main() {
 	//dir := "/Users/johanospina/Downloads"
 
 	//Para Windows
-	dir := "C:/Users/ospin/OneDrive/Imágenes"
+	//dir := "C:/Users/ospin/OneDrive/Imágenes"
 
-	//valor aleatorio
+	//Lista de los argumentos pasados incluyendo el archivo go
+	args := os.Args
+
+	fmt.Println("Archivo de ejecucion: " + args[0])
+
+	//Verificacion de que se paso el directorio de las imagenes
+	if len(args) < 2 {
+		print("Falta parametros")
+		return
+	}
+
+	dir := args[1]
+
+	//Semilla para el valor aleatorio
 	src := rand.NewSource(time.Now().UnixNano())
 	r := rand.New(src)
-	print(r)
 
 	//extension a filtrar
 	var extImg = []string{
@@ -48,7 +61,7 @@ func main() {
 	}
 
 	//Itera sobre los archivos en la carpeta y guarda en el array
-	var i = 0
+	var i = 0 //Iteracion para guardar al ritmo de que se encuentran imagenes
 	for _, file := range files {
 		if foundExt2(extImg, file.Name()) {
 			fmt.Println(file.Name())
@@ -57,6 +70,47 @@ func main() {
 		}
 	}
 
+	//rn es el numero aleatorio generado a partir del tamaño del array
+	rn := r.Intn(len(filterFiles) - 1)
+	rImg := filterFiles[rn]
+	print("\n" + rImg)
+
+	//Consultar nombre de host e imprimirlo
+	hostname, err := os.Hostname()
+	if err != nil {
+		fmt.Println("Error al querer obtener el nombre: ", err)
+		return
+	}
+	fmt.Println("\n"+"Nombre del host: ", hostname)
+
+	//PARA CODIFICAR A BASE64
+	//Conseguir los bytes de la imagen
+	pathImg := dir + "/" + rImg
+
+	imgBytes, err := os.ReadFile(pathImg)
+	if err != nil {
+		fmt.Println("Error al leer la imagen: ", err)
+		return
+	}
+
+	b64String := base64.StdEncoding.EncodeToString(imgBytes)
+
+	file, err := os.Create("imgBase64.txt")
+	if err != nil {
+		fmt.Println("Error al crear el archivo: ", err)
+		return
+	}
+	defer file.Close()
+
+	//Escritura del archivo
+	_, err = file.WriteString(b64String)
+	if err != nil {
+		fmt.Println("Error al escribir el archivo:", err)
+		return
+	}
+	fmt.Println("Archivo creado")
+
+	//Para subir el servicio web:
 	http.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
 		for _, file := range filterFiles {
 			fmt.Fprint(rw, file+"\n")
@@ -76,13 +130,13 @@ func foundExt2(arr []string, name string) bool {
 }
 
 // Se hizo asi solo por practica pero se sabe que es mas eficiente un bucle
-func foundExt(arr []string, name string, i int) bool {
-	if i >= len(arr) {
-		return false
-	}
-	aux := strings.Split(name, ".")
-	if "."+aux[len(aux)-1] == arr[i] {
-		return true
-	}
-	return foundExt(arr, name, i+1)
-}
+//func foundExt(arr []string, name string, i int) bool {
+//	if i >= len(arr) {
+//		return false
+//	}
+//	aux := strings.Split(name, ".")
+//	if "."+aux[len(aux)-1] == arr[i] {
+//		return true
+//	}
+//	return foundExt(arr, name, i+1)
+//}
