@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="/static/css/tailwind.css" rel="stylesheet">
+    <title>Go Web with Tailwind</title>
+</head>
+<body class="bg-gray-100 text-center">
+    <h1 class="text-4xl font-bold mb-4">Bienvenido a {{.HostName}}</h1>
+    <img src="/static/{{.RandomImage}}" alt="Random Image" class="mx-auto">
+    <p class="mt-2">Archivos disponibles:</p>
+    <ul>
+        {{range .Files}}
+        <li>{{.}}</li>
+        {{end}}
+    </ul>
+</body>
+</html>

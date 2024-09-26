@@ -1,0 +1,14 @@
+{
+    "name": "tailwind-go-app",
+    "version": "1.0.0",
+    "description": "Aplicación Go con Tailwind",
+    "main": "index.js",
+    "scripts": {
+      "build-css": "npx tailwindcss -i ./static/css/input.css -o ./static/css/style.css --minify"
+    },
+    "dependencies": {},
+    "devDependencies": {
+      "tailwindcss": "^3.3.0"
+    }
+  }
+  
