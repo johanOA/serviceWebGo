@@ -4,7 +4,7 @@
     "description": "Aplicación Go con Tailwind",
     "main": "index.js",
     "scripts": {
-      "build-css": "npx tailwindcss -i ./static/css/input.css -o ./static/css/style.css --minify"
+      "build-css": "npx tailwindcss -i ./goWeb/static/css/input.css -o ./goWeb/static/css/style.css --minify"
     },
     "dependencies": {},
     "devDependencies": {

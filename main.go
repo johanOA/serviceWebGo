@@ -1,11 +1,9 @@
-//go mod init hello
-//go mod tidy
-
 package main
 
 import (
 	"encoding/base64"
 	"fmt"
+	"html/template"
 	"log"
 	"math/rand"
 	"net/http"
@@ -14,129 +12,109 @@ import (
 	"time"
 )
 
+// Estructura para pasar datos a la plantilla HTML
+type PageData struct {
+	HostName    string
+	RandomImage string
+	Files       []string
+}
+
 func main() {
 
-	//Ruta  mac /Users/johanospina/Downloads
-
-	//Para Windows C:/Users/ospin/OneDrive/Imágenes && C:/Users/ospin/Downloads
-
-	//Lista de los argumentos pasados incluyendo el archivo go
 	args := os.Args
 
 	fmt.Println("Archivo de ejecucion: " + args[0])
 
-	//Verificacion de que se paso el directorio de las imagenes
+	// Verificación de que se pasó el directorio de las imágenes
 	if len(args) < 2 {
-		print("Falta parametros")
+		print("Faltan parámetros")
 		return
 	}
 
 	dir := args[1]
 
-	//Semilla para el valor aleatorio
+	// Semilla para el valor aleatorio
 	src := rand.NewSource(time.Now().UnixNano())
 	r := rand.New(src)
 
-	//extension a filtrar
+	// Extensiones a filtrar
 	var extImg = []string{
-		// Formatos Rasterizados
 		".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".tif", ".webp", ".heif", ".heic", ".ppm", ".pgm", ".pbm",
-		// Formatos Vectoriales
-		".svg", ".eps", ".ai",
-		// Otros Formatos de Imágenes
-		".ico", ".icns", ".psd", ".xcf", ".raw", ".cr2", ".nef", ".arw",
-		// Formatos 3D o Especializados
+		".svg", ".eps", ".ai", ".ico", ".icns", ".psd", ".xcf", ".raw", ".cr2", ".nef", ".arw",
 		".dds", ".exr", ".hdr", ".avif",
 	}
 
 	var filterFiles []string
 
-	//lee los archivos con os.ReadDir
+	// Lee los archivos del directorio
 	files, err := os.ReadDir(dir)
-
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	//Itera sobre los archivos en la carpeta y guarda en el array
-	var i = 0 //Iteracion para guardar al ritmo de que se encuentran imagenes
+	// Itera sobre los archivos y guarda en el array
 	for _, file := range files {
 		if foundExt2(extImg, file.Name()) {
-			fmt.Println(file.Name())
 			filterFiles = append(filterFiles, file.Name())
-			i++
 		}
 	}
 
-	//rn es el numero aleatorio generado a partir del tamaño del array
-	rn := r.Intn(len(filterFiles) - 1)
+	// Genera un número aleatorio para seleccionar una imagen
+	rn := r.Intn(len(filterFiles))
 	rImg := filterFiles[rn]
-	print("\n" + rImg)
 
-	//Consultar nombre de host e imprimirlo
+	// Consultar nombre de host
 	hostname, err := os.Hostname()
 	if err != nil {
-		fmt.Println("Error al querer obtener el nombre: ", err)
+		fmt.Println("Error al obtener el nombre del host: ", err)
 		return
 	}
-	fmt.Println("\n"+"Nombre del host: ", hostname)
 
-	//PARA CODIFICAR A BASE64
-	//Conseguir los bytes de la imagen
+	// Para codificar una imagen a base64 (opcional)
 	pathImg := dir + "/" + rImg
-
 	imgBytes, err := os.ReadFile(pathImg)
 	if err != nil {
 		fmt.Println("Error al leer la imagen: ", err)
 		return
 	}
-
-	//Codificar a base 64
 	b64String := base64.StdEncoding.EncodeToString(imgBytes)
 
-	//Crea el archivo dado que si se imprime es demasiado largo
+	// Crear el archivo codificado en base64
 	file, err := os.Create("imgBase64.txt")
 	if err != nil {
 		fmt.Println("Error al crear el archivo: ", err)
 		return
 	}
 	defer file.Close()
+	file.WriteString(b64String)
 
-	//Escritura del archivo
-	_, err = file.WriteString(b64String)
-	if err != nil {
-		fmt.Println("Error al escribir el archivo:", err)
-		return
-	}
-	fmt.Println("Archivo creado")
+	// Servir archivos estáticos (como el CSS de Tailwind)
+	fs := http.FileServer(http.Dir("./static"))
+	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
-	//Para subir el servicio web:
-	http.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
-		for _, file := range filterFiles {
-			fmt.Fprint(rw, file+"\n")
+	// Ruta principal para mostrar la página
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		data := PageData{
+			HostName:    hostname,
+			RandomImage: rImg,
+			Files:       filterFiles,
 		}
+		tmpl := template.Must(template.ParseFiles("templates/index.html"))
+		tmpl.Execute(w, data)
 	})
-	http.ListenAndServe("localhost:3000", nil)
+
+	// Inicia el servidor en el puerto 3000
+	fmt.Println("Servidor en http://localhost:3000")
+	http.ListenAndServe(":3000", nil)
 }
 
+// Función para verificar si el archivo tiene una de las extensiones filtradas
 func foundExt2(arr []string, name string) bool {
 	aux := strings.Split(name, ".")
-	for _, ind := range arr {
-		if "."+aux[len(aux)-1] == ind {
+	for _, ext := range arr {
+		if "."+aux[len(aux)-1] == ext {
 			return true
 		}
 	}
 	return false
 }
-
-// Se hizo asi solo por practica pero se sabe que es mas eficiente un bucle
-//func foundExt(arr []string, name string, i int) bool {
-//	if i >= len(arr) {
-//		return false
-//	}
-//	aux := strings.Split(name, ".")
-//	if "."+aux[len(aux)-1] == arr[i] {
-//		return true
-//	}
-//	return foundExt(arr, name, i+1)
-//}

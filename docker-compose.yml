@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  web:
+    command: tail -f /dev/null
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/goWeb
+    environment:
+      - PORT=3000
