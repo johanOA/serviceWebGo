@@ -125,7 +125,7 @@ func main() {
 
 	// Iniciar el servidor en el puerto 3000
 	fmt.Println("Servidor iniciado en http://localhost:3000")
-	http.ListenAndServe("localhost:3000", nil)
+	http.ListenAndServe(":3000", nil)
 }
 
 // Función para cargar imágenes de una carpeta
